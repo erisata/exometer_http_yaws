@@ -15,7 +15,7 @@
 #\--------------------------------------------------------------------
 
 REBAR=rebar
-APP_NAME=exometer_http_yaws
+APP=exometer_http_yaws
 
 all: compile-all
 
@@ -40,7 +40,7 @@ itest: compile
 
 rtest: compile
 	mkdir -p logs
-	env ERL_LIBS=deps erl -pa ebin -pa itest -config test/sys -s $(APP)
+	env ERL_LIBS=deps erl -pa ebin -pa itest -config test/sys -s $(APP) -s $(APP)_RTEST
 
 doc:
 	$(REBAR) doc

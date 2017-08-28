@@ -19,7 +19,7 @@
 %%%
 -module(exometer_http_yaws_app).
 -behaviour(application).
--export([get_env/1, get_env/2]).
+-export([name/0, get_env/1, get_env/2]).
 -export([start/2, stop/1]).
 
 -define(APP, exometer_http_yaws).
@@ -27,6 +27,13 @@
 %%% ============================================================================
 %%% Public API.
 %%% ============================================================================
+
+%%
+%%  Returns name of this application.
+%%
+name() ->
+    ?APP.
+
 
 %%  @doc
 %%  Get environment variable for this application.

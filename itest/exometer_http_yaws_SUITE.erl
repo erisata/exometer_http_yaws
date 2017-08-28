@@ -14,34 +14,53 @@
 %| limitations under the License.
 %\--------------------------------------------------------------------
 
-%%% @doc
-%%% The main supervisor for the application.
 %%%
--module(exometer_http_yaws_sup).
--behaviour(supervisor).
--export([start_link/0]).
--export([init/1]).
-
-
-%%% ============================================================================
-%%% API functions.
-%%% ============================================================================
-
-%%  @doc
-%%  Create this supervisor.
-%%
-start_link() ->
-    supervisor:start_link({local, ?MODULE}, ?MODULE, {}).
-
-
+%%% Common Tests for `exometer_http_yaws' application.
+%%%
+-module(exometer_http_yaws_SUITE).
+-compile([{parse_transform, lager_transform}]).
+-export([all/0, init_per_testcase/2, end_per_testcase/2]).
+-export([
+    test_static_configuration/1
+]).
 
 %%% ============================================================================
-%%% Callbacks for supervisor.
+%%% Callbacks for `common_test'
 %%% ============================================================================
 
 %%  @doc
-%%  Supervisor initialization.
+%%  CT API.
 %%
-init({}) ->
-    {ok, {{one_for_all, 10, 10000}, [
-    ]}}.
+all() -> [
+    test_static_configuration
+].
+
+
+%%
+%%  Log test case name at start
+%%
+init_per_testcase(TestCase, Config) ->
+    lager:debug("---------------------- ~p start", [TestCase]),
+    Config.
+
+
+%%
+%%  Log test case name at end. Also, clean subscriptions and metrics.
+%%
+end_per_testcase(TestCase, _Config) ->
+    lager:debug("---------------------- ~p end", [TestCase]),
+    ok.
+
+
+
+%%% ============================================================================
+%%% Test cases.
+%%% ============================================================================
+
+%%  @doc
+%%
+%%
+test_static_configuration(_Config) ->
+    ok.
+
+

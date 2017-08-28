@@ -29,6 +29,8 @@
 start() ->
 %%    compile_test_node(),
     start_test_node(),
+    exometer:new([testA, cpuUsage], gauge),
+    exometer:new([testB, memUsage], histogram),
     lager:debug("Test node started."),
     ok.
 

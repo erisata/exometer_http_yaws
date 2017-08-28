@@ -15,9 +15,38 @@
 %\--------------------------------------------------------------------
 
 %%% @doc
-%%%
+%%% Streams values of specified exometer metrics.
 %%%
 -module(exometer_http_yaws_stream).
 
 %% API
--export([]).
+-export([start_link/2]).
+
+
+%%% ============================================================================
+%%% API functions.
+%%% ============================================================================
+
+%%  @doc
+%%  Start a subscription manager.
+%%
+start_link(YawsPid, Metrics) ->
+    Pid = spawn_link(fun() -> stream_data(YawsPid, Metrics) end),
+    {ok, Pid}.
+
+
+
+%%% ============================================================================
+%%% Internal functions.
+%%% ============================================================================
+
+stream_data(YawsPid, Metrics) ->
+    ListOfStrings = lists:map(
+        fun({Name, Datapoint}) ->
+            {ok, Value} = exometer:get_value(Name, Datapoint),
+            lists:flatten(io_lib:format("~w", [Value]))
+        end, Metrics),
+    FinalString = string:join(ListOfStrings, ";"),
+    lager:info("Final string: ~p", [FinalString]),
+%%    yaws_api:stream_chunk_deliver(YawsPid, Data)
+    ok.
