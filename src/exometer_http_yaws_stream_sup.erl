@@ -40,6 +40,7 @@ start_link() ->
 %%  Create this supervisor.
 %%
 start_stream(YawsPid, Metrics) ->
+    lager:info("STARTING STREAM!"),
     supervisor:start_child(?MODULE, [YawsPid, Metrics]).
 
 

@@ -52,10 +52,10 @@ out(A) ->
             [FullMetricNames, Acc]
         end, [], Entries)),
     ListOfStrings = [format_metric_path(Name, Datapoint) || {Name, Datapoint} <- Metrics],
-    FinalString = string:join(ListOfStrings, ";"),
+    FinalString = string:join(ListOfStrings, ";") ++ "\n",
     lager:info("Final string: ~p", [FinalString]),
-    exometer_http_yaws_stream_sup:start_link(Self, Metrics),
-    {streamcontent, "application/octet-stream", <<>>}.
+    exometer_http_yaws_stream_sup:start_stream(Self, Metrics),
+    {streamcontent, "application/octet-stream", FinalString}.
 
 
 

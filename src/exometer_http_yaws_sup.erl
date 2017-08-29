@@ -43,5 +43,11 @@ start_link() ->
 %%  Supervisor initialization.
 %%
 init({}) ->
-    {ok, {{one_for_all, 10, 10000}, [
-    ]}}.
+    ExometerHttpYawsSupSpec = {exometer_http_yaws_stream_sup,
+        {exometer_http_yaws_stream_sup, start_link, []},
+        temporary,
+        5000,
+        worker,
+        [exometer_http_yaws_stream_sup]
+    },
+    {ok, {{one_for_all, 10, 10000}, [ExometerHttpYawsSupSpec]}}.
