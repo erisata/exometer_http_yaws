@@ -41,39 +41,8 @@ start() ->
 %%%
 out(A) ->
     lager:info("OUT invoked."),
-    Self = self(),
-    Entries = exometer:find_entries([]),
-    %
-    % Form a list of Entries with datapoints
-    Metrics = lists:flatten(lists:foldl(
-        fun({Name, _Type, _Status}, Acc) ->
-            Datapoints = exometer:info(Name, datapoints),
-            FullMetricNames = [{Name, Datapoint} || Datapoint <- Datapoints],
-            [FullMetricNames, Acc]
-        end, [], Entries)),
-    ListOfStrings = [format_metric_path(Name, Datapoint) || {Name, Datapoint} <- Metrics],
-    FinalString = string:join(ListOfStrings, ";") ++ "\n",
-    lager:info("Final string: ~p", [FinalString]),
-    exometer_http_yaws_stream_sup:start_stream(Self, Metrics),
-    {streamcontent, "application/octet-stream", FinalString}.
+    {ok, Pid} = exometer_http_yaws_stream_sup:start_stream(A#arg.clisock),
+    {streamcontent_from_pid, "text/plain", Pid}.
 
 
-
-%%% ============================================================================
-%%% Internal Functions.
-%%% ============================================================================
-
-%%  @private
-%%  Forms Graphite compatible metric path out of Exometer's Probe and DataPoint.
-%%
-format_metric_path(Probe, DataPoint) ->
-    string:join(lists:map(fun metric_elem_to_list/1, Probe ++ [DataPoint]), ".").
-
-
-%%  @private
-%%  Converts metric path elements to list (string)
-%%
-metric_elem_to_list(V) when is_atom(V)    -> erlang:atom_to_list(V);
-metric_elem_to_list(V) when is_integer(V) -> erlang:integer_to_list(V);
-metric_elem_to_list(V) when is_list(V)    -> V.
 

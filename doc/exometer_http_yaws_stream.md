@@ -69,7 +69,7 @@ Unused.
 
 ### start_link/2 ###
 
-`start_link(YawsPid, Metrics) -> any()`
+`start_link(Socket, Metrics) -> any()`
 
 Start a subscription manager.
 

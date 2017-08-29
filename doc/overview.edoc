@@ -1,0 +1,6 @@
+@title The exometer_http_yaws application
+@doc
+
+This application allows
+
+curl -N -get http://localhost:8004/csv --verbose > ~/Desktop/kst_test_files/test2.csv

@@ -20,7 +20,7 @@
 -module(exometer_http_yaws_stream_sup).
 -compile([{parse_transform, lager_transform}]).
 -behaviour(supervisor).
--export([start_link/0, start_stream/2]).
+-export([start_link/0, start_stream/1]).
 -export([init/1]).
 
 
@@ -39,9 +39,9 @@ start_link() ->
 %%  @doc
 %%  Create this supervisor.
 %%
-start_stream(YawsPid, Metrics) ->
+start_stream(Socket) ->
     lager:info("STARTING STREAM!"),
-    supervisor:start_child(?MODULE, [YawsPid, Metrics]).
+    supervisor:start_child(?MODULE, [Socket]).
 
 
 

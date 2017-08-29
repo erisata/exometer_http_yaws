@@ -47,7 +47,7 @@ Create this supervisor.
 
 ### start_stream/2 ###
 
-`start_stream(YawsPid, Metrics) -> any()`
+`start_stream(Socket, Metrics) -> any()`
 
 Create this supervisor.
 
