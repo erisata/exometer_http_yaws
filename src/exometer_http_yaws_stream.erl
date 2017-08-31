@@ -32,13 +32,12 @@
 
 -define(DEFAULT_DELAY, 1000).
 
-
 %%% ============================================================================
 %%% API functions.
 %%% ============================================================================
 
 %%  @doc
-%%  Start a subscription manager.
+%%  Start a streamer.
 %%
 start_link(Socket) ->
     gen_server:start_link(?MODULE, [Socket], []).
@@ -51,7 +50,7 @@ start_link(Socket) ->
 -record(state, {
     socket    :: term() | undefined,
     yaws_pid    :: term() | undefined,
-    metrics     :: list() %% TODO [{[atom(), atom(), ...], atom()}, ...]
+    metrics     :: [{EntryName :: [atom()], DataPoint :: atom()}]
 }).
 
 
@@ -60,50 +59,53 @@ start_link(Socket) ->
 %%% Callbacks for `gen_server'.
 %%% ============================================================================
 
-%% @doc
-%%
+%%  @doc
+%%  Saves socket of the client and starts streaming procedure.
 %%
 init([Socket]) ->
-    self() ! rec_loop,
-    {ok, #state{socket = Socket}}. %% TODO dont forget testing with empty metrics
+    self() ! setup,
+    {ok, #state{socket = Socket}}.
 
 
-%% @doc
-%% Unused.
+%%  @doc
+%%  Unused.
 %%
 handle_call(_Unknown, _From, State) ->
     {noreply, State}.
 
 
-%% @doc
-%% Unused.
+%%  @doc
+%%  Unused.
 %%
 handle_cast(_Unknown, State) ->
     {noreply, State}.
 
 
-%% @doc
+%%  @doc
+%%  Setups socket between client and Yaws.
+%%  It waits for Yaws to confirm that the socket is ready for streaming.
 %%
+handle_info(setup, State = #state{socket = Socket}) ->
+    receive
+        {ok, YawsPid} ->
+            self() ! stream_header,
+            NewState = State#state{
+                yaws_pid = YawsPid
+            },
+            {noreply, NewState};
+        {discard, YawsPid} ->
+            lager:info("Yaws unable to send data to client socket. Check HTTP request."),
+            yaws_api:stream_process_end(Socket, YawsPid),
+            {stop, normal, State}
+    after
+        4000 ->
+            lager:warning("Timeout while setting up Yaws content stream."),
+            {stop, normal, State}
+    end;
+
+%%  @doc
+%%  Streams first line of csv which contains metric names.
 %%
-handle_info(rec_loop, State = #state{socket = Socket}) ->
-    NewState = receive
-                   {ok, YawsPid} ->
-                       self() ! stream_header,
-                       State#state{
-                           yaws_pid = YawsPid
-                       };
-                   {discard, YawsPid} ->
-                       lager:info("Socket discarded. Stopping stream."),
-                       yaws_api:stream_process_end(Socket, YawsPid),
-                       state#{} % TODO terminate gen_server?
-               after
-                   4000 ->
-                    lager:info("Yaws error, timeout"), % TODO need better error messages
-                    state#{}
-               end,
-    {noreply, NewState};
-
-
 handle_info(stream_header, State) ->
     #state{
         socket = Socket,
@@ -111,50 +113,52 @@ handle_info(stream_header, State) ->
     } = State,
     Metrics = get_metrics(),
     HeaderLine = create_header_line(Metrics),
+    lager:info("Stream started. Number of metrics: ~p", [erlang:length(Metrics)]),
     case yaws_api:stream_process_deliver_chunk(Socket, HeaderLine) of
         ok ->
-            self() ! stream_data;
+            self() ! stream_data,
+            NewState = State#state{metrics = Metrics},
+            {noreply, NewState};
         {error, _} ->
-            lager:info("Connection lost. Stopping stream."),
-            yaws_api:stream_process_end(Socket, YawsPid)
-    end,
-    NewState = State#state{metrics = Metrics},
-    {noreply, NewState};
+            lager:info("Stream stopped. Connection lost."),
+            yaws_api:stream_process_end(Socket, YawsPid),
+            {stop, normal, State}
+    end;
 
-
+%%  @doc
+%%  Stream one line of csv which contains values of the metrics.
+%%
 handle_info(stream_data, State) ->
     #state{
         socket = Socket,
         yaws_pid = YawsPid,
         metrics = Metrics
     } = State,
-    lager:info("STREAMING"),
     DataLine = create_data_line(Metrics),
     case yaws_api:stream_process_deliver_chunk(Socket, DataLine) of
         ok ->
             Delay = exometer_http_yaws_app:get_env(delay, ?DEFAULT_DELAY),
-            erlang:send_after(Delay, self(), stream_data);
+            erlang:send_after(Delay, self(), stream_data),
+            {noreply, State};
         {error, _} ->
-            lager:info("Connection lost. Stopping stream."),
-            yaws_api:stream_process_end(Socket, YawsPid)
-    end,
-    {noreply, State};
-
-
+            lager:info("Stream stopped. Connection lost."),
+            yaws_api:stream_process_end(Socket, YawsPid),
+            {stop, normal, State}
+    end;
 
 handle_info(_Unknown, State) ->
     {noreply, State}.
 
 
-%% @doc
-%% Unused.
+%%  @doc
+%%  Unused.
 %%
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
 
-%% @doc
-%% Unused.
+%%  @doc
+%%  Unused.
 %%
 terminate(_Reason, _State) ->
     ok.
@@ -166,29 +170,31 @@ terminate(_Reason, _State) ->
 %%% ============================================================================
 
 %%  @private
-%%  TODO
+%%  Creates a single csv line containing names of metrics.
 %%
 create_header_line(Metrics) ->
     ListOfStrings = [format_metric_path(Name, Datapoint) || {Name, Datapoint} <- Metrics],
-    string:join(ListOfStrings, ";") ++ "\n".
+    string:join(ListOfStrings, ",") ++ "\n".
 
 
+%%  @private
+%%  Creates a single csv line containing values of metrics.
+%%
 create_data_line(Metrics) ->
     ListOfStrings = lists:map(
         fun({Name, Datapoint}) ->
             {ok, [{Datapoint, Value}]} = exometer:get_value(Name, Datapoint),
             lists:flatten(io_lib:format("~w", [Value]))
         end, Metrics),
-    string:join(ListOfStrings, ";") ++ "\n".
+    string:join(ListOfStrings, ",") ++ "\n".
 
 
 %%  @private
-%%  TODO
+%%  Gets metrics from Exometer. Creates a list of
+%%  metrics containing probes and their datapoints.
 %%
 get_metrics() ->
     Entries = exometer:find_entries([]),
-    %
-    % Form a list of Entries with datapoints
     _Metrics = lists:flatten(lists:foldl(
         fun({Name, _Type, _Status}, Acc) ->
             Datapoints = exometer:info(Name, datapoints),
@@ -198,7 +204,7 @@ get_metrics() ->
 
 
 %%  @private
-%%  Forms Graphite compatible metric path out of Exometer's Probe and DataPoint.
+%%  Forms a dot separated string of Probe and its datapoint.
 %%
 format_metric_path(Probe, DataPoint) ->
     string:join(lists:map(fun metric_elem_to_list/1, Probe ++ [DataPoint]), ".").
@@ -225,27 +231,21 @@ metric_elem_to_list(V) when is_list(V)    -> V.
 %%
 create_header_line_test_() ->
     [
-        ?_assertEqual("testB.memUsage.n;testB.memUsage.mean;testB.memUsage.min\n",
+        {"Check, if line of probes and their datapoints formatted correctly", ?_assertEqual(
+            "testB.memUsage.n,testB.memUsage.mean,testB.memUsage.min\n",
             create_header_line([
                 {[testB, memUsage], n},
                 {[testB, memUsage], mean},
                 {[testB, memUsage], min}
-                ])),
-        ?_assertEqual("\n", create_header_line([]))
+                ]))},
+        {"Check, if header line formatted correctly when there are no metrics", ?_assertEqual(
+            "\n",
+            create_header_line([]))}
     ].
 
 
 %%
-%%  Check, if pickle message is created properly.
-%%
-create_data_line_test_() ->
-    [
-
-    ].
-
-
-%%
-%%  Check, misc graphite path combinations.
+%%  Check, misc metric path combinations.
 %%
 format_metric_path_test_() ->
     [
@@ -260,3 +260,5 @@ format_metric_path_test_() ->
 
 
 -endif.
+
+

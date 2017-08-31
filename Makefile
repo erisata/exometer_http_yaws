@@ -23,7 +23,7 @@ deps:
 	$(REBAR) get-deps
 
 compile:
-	$(REBAR) compile
+	$(REBAR) compile skip_deps=true
 
 compile-all:
 	$(REBAR) compile --recursive
@@ -36,11 +36,11 @@ test: compile
 
 itest: compile
 	mkdir -p logs
-	env ERL_LIBS=deps ERL_AFLAGS='-config test/sys' $(REBAR) ct skip_deps=true $(CT_ARGS) || grep Testing logs/raw.log
+	env ERL_LIBS=deps ERL_AFLAGS='-config test/itest-sys' $(REBAR) ct skip_deps=true $(CT_ARGS) || grep Testing logs/raw.log
 
 rtest: compile
 	mkdir -p logs
-	env ERL_LIBS=deps erl -pa ebin -pa itest -config test/sys -s $(APP) -s $(APP)_RTEST
+	env ERL_LIBS=deps erl -pa ebin -pa itest -config test/sys -s $(APP) -s $(APP)_RTEST -s sync
 
 doc:
 	$(REBAR) doc

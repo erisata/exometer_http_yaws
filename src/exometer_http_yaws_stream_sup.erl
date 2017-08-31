@@ -32,15 +32,13 @@
 %%  Create this supervisor.
 %%
 start_link() ->
-    lager:info("STARTING STREAM SUP"),
     supervisor:start_link({local, ?MODULE}, ?MODULE, {}).
 
 
 %%  @doc
-%%  Create this supervisor.
+%%  Starts child process out of its spec.
 %%
 start_stream(Socket) ->
-    lager:info("STARTING STREAM!"),
     supervisor:start_child(?MODULE, [Socket]).
 
 
@@ -61,3 +59,5 @@ init({}) ->
         [exometer_http_yaws_stream]
     },
     {ok, {{simple_one_for_one, 10, 10000}, [StreamSpec]}}.
+
+

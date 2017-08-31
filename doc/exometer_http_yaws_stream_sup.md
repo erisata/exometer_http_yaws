@@ -19,8 +19,8 @@ __Behaviours:__ [`supervisor`](supervisor.md).
 
 <table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#init-1">init/1</a></td><td>
 Supervisor initialization.</td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td>
-Create this supervisor.</td></tr><tr><td valign="top"><a href="#start_stream-2">start_stream/2</a></td><td>
-Create this supervisor.</td></tr></table>
+Create this supervisor.</td></tr><tr><td valign="top"><a href="#start_stream-1">start_stream/1</a></td><td>
+Starts child process out of its spec.</td></tr></table>
 
 
 <a name="functions"></a>
@@ -43,11 +43,11 @@ Supervisor initialization.
 
 Create this supervisor.
 
-<a name="start_stream-2"></a>
+<a name="start_stream-1"></a>
 
-### start_stream/2 ###
+### start_stream/1 ###
 
-`start_stream(Socket, Metrics) -> any()`
+`start_stream(Socket) -> any()`
 
-Create this supervisor.
+Starts child process out of its spec.
 

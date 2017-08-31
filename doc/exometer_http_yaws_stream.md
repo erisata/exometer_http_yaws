@@ -20,8 +20,10 @@ __Behaviours:__ [`gen_server`](gen_server.md).
 <table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#code_change-3">code_change/3</a></td><td>
 Unused.</td></tr><tr><td valign="top"><a href="#handle_call-3">handle_call/3</a></td><td>
 Unused.</td></tr><tr><td valign="top"><a href="#handle_cast-2">handle_cast/2</a></td><td>
-Unused.</td></tr><tr><td valign="top"><a href="#handle_info-2">handle_info/2</a></td><td>.</td></tr><tr><td valign="top"><a href="#init-1">init/1</a></td><td>.</td></tr><tr><td valign="top"><a href="#start_link-2">start_link/2</a></td><td>
-Start a subscription manager.</td></tr><tr><td valign="top"><a href="#terminate-2">terminate/2</a></td><td>
+Unused.</td></tr><tr><td valign="top"><a href="#handle_info-2">handle_info/2</a></td><td>
+Setups socket between client and Yaws.</td></tr><tr><td valign="top"><a href="#init-1">init/1</a></td><td>
+Saves socket of the client and starts streaming procedure.</td></tr><tr><td valign="top"><a href="#start_link-1">start_link/1</a></td><td>
+Start a streamer.</td></tr><tr><td valign="top"><a href="#terminate-2">terminate/2</a></td><td>
 Unused.</td></tr></table>
 
 
@@ -59,19 +61,24 @@ Unused.
 
 `handle_info(Unknown, State) -> any()`
 
+Setups socket between client and Yaws.
+It waits for Yaws to confirm that the socket is ready for streaming.
+
 <a name="init-1"></a>
 
 ### init/1 ###
 
 `init(X1) -> any()`
 
-<a name="start_link-2"></a>
+Saves socket of the client and starts streaming procedure.
 
-### start_link/2 ###
+<a name="start_link-1"></a>
 
-`start_link(Socket, Metrics) -> any()`
+### start_link/1 ###
 
-Start a subscription manager.
+`start_link(Socket) -> any()`
+
+Start a streamer.
 
 <a name="terminate-2"></a>
 

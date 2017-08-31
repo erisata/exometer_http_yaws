@@ -15,14 +15,16 @@
 %\--------------------------------------------------------------------
 
 {application, exometer_http_yaws, [
-    {description, "Pushes Exometer metrics to specific Yaws URL"},
+    {description, "Pushes Exometer metrics to a file on specific Yaws URL"},
     {vsn, git},
     {mod, {exometer_http_yaws_app, []}},
     {applications, [
         kernel,
         stdlib,
         lager,
-        exometer_core,
-        yaws
+        yaws,
+        exometer_core
     ]}
 ]}.
+
+

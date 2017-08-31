@@ -19,7 +19,7 @@ __Behaviours:__ [`supervisor`](supervisor.md).
 
 <table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#init-1">init/1</a></td><td>
 Supervisor initialization.</td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td>
-Create this supervisor.</td></tr></table>
+Starts super supervisor.</td></tr></table>
 
 
 <a name="functions"></a>
@@ -40,5 +40,5 @@ Supervisor initialization.
 
 `start_link() -> any()`
 
-Create this supervisor.
+Starts super supervisor.
 

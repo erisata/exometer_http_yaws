@@ -28,7 +28,7 @@
 %%% ============================================================================
 
 %%  @doc
-%%  Create this supervisor.
+%%  Starts super supervisor.
 %%
 start_link() ->
     supervisor:start_link({local, ?MODULE}, ?MODULE, {}).

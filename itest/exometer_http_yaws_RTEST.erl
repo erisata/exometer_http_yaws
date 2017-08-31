@@ -18,54 +18,14 @@
 %%% Helper functions for `make rtest`.
 %%%
 -module(exometer_http_yaws_RTEST).
--behaviour(supervisor).
 -compile([{parse_transform, lager_transform}]).
 -export([start/0]).
--export([init/1]).
 
 %%
 %%  Invoked from the command line.
 %%
 start() ->
-%%    compile_test_node(),
-    start_test_node(),
     exometer:new([testA, cpuUsage], gauge),
     exometer:new([testB, memUsage], histogram),
-    lager:debug("Test node started."),
     ok.
-
-
-%%
-%%
-%%
-start_test_node() ->
-    {ok, Pid} = supervisor:start_link({local, ?MODULE}, ?MODULE, {}),
-    true = erlang:unlink(Pid),
-    ok.
-
-
-%%
-%%
-%%
-compile_test_node() ->
-%%    CompileOpts = [{outdir,"itest"}, {i, "deps/axb_core/include"}],
-%%    {ok, _} = compile:file("deps/axb_core/itest/axb_itest_adapter.erl", CompileOpts),
-%%    {ok, _} = compile:file("deps/axb_core/itest/axb_itest_adapter_listener.erl", CompileOpts),
-%%    {ok, _} = compile:file("deps/axb_core/itest/axb_itest_adapter_sup.erl", CompileOpts),
-%%    {ok, _} = compile:file("deps/axb_core/itest/axb_itest_eip_pipeline.erl", CompileOpts),
-%%    {ok, _} = compile:file("deps/axb_core/itest/axb_itest_flow.erl", CompileOpts),
-%%    {ok, _} = compile:file("deps/axb_core/itest/axb_itest_flows.erl", CompileOpts),
-%%    {ok, _} = compile:file("deps/axb_core/itest/axb_itest_node.erl", CompileOpts),
-    lager:debug("Test node compiled."),
-    ok.
-
-
-%%
-%%  Callback for the `supervisor`.
-%%
-init({}) ->
-    {ok, {{one_for_all, 100, 10}, [
-
-    ]}}.
-
 

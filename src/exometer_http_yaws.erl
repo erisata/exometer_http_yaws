@@ -29,20 +29,17 @@
 
 %%
 %%  This is needed to be able to start this application from console,
-%%  using `-s axb_webui` option.
+%%  using `-s exometer_http_yaws` option.
 %%
 start() ->
     application:ensure_all_started(exometer_http_yaws_app:name(), permanent).
 
 
 %%% @doc
-%%% Creates the first line of csv file. The line consists
-%%% of metric names. Starts continuous stream supervisor.
+%%% Starts stream of Exometer metrics as csv values to the client socket.
 %%%
 out(A) ->
-    lager:info("OUT invoked."),
     {ok, Pid} = exometer_http_yaws_stream_sup:start_stream(A#arg.clisock),
     {streamcontent_from_pid, "text/plain", Pid}.
-
 
 
