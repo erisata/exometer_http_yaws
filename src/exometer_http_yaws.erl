@@ -14,8 +14,11 @@
 %| limitations under the License.
 %\--------------------------------------------------------------------
 
+%%% @doc
+%%% This module serves two purposes:
 %%%
-%%% Main API.
+%%%   * It is a yaws appmod for streaming exometer statistics;
+%%%   * It provides main API for this application.
 %%%
 -module(exometer_http_yaws).
 -compile([{parse_transform, lager_transform}]).
@@ -27,9 +30,9 @@
 %%% Public API
 %%% ============================================================================
 
-%%
+%%  @doc
 %%  This is needed to be able to start this application from console,
-%%  using `-s exometer_http_yaws` option.
+%%  using `-s exometer_http_yaws' option.
 %%
 start() ->
     application:ensure_all_started(exometer_http_yaws_app:name(), permanent).
@@ -38,8 +41,8 @@ start() ->
 %%% @doc
 %%% Starts stream of Exometer metrics as csv values to the client socket.
 %%%
-out(A) ->
-    {ok, Pid} = exometer_http_yaws_stream_sup:start_stream(A#arg.clisock),
+out(#arg{clisock = Socket}) ->
+    {ok, Pid} = exometer_http_yaws_stream_sup:start_stream(Socket),
     {streamcontent_from_pid, "text/plain", Pid}.
 
 

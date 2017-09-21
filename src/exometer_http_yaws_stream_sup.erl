@@ -51,13 +51,19 @@ start_stream(Socket) ->
 %%  Supervisor initialization.
 %%
 init({}) ->
-    StreamSpec = {exometer_http_yaws_stream,
-        {exometer_http_yaws_stream, start_link, []},
-        temporary,
-        5000,
-        worker,
-        [exometer_http_yaws_stream]
+    SupFlags = #{
+        strategy  => simple_one_for_one,
+        intensity => 10,
+        period    => 10000
     },
-    {ok, {{simple_one_for_one, 10, 10000}, [StreamSpec]}}.
+    StreamSpec = #{
+        id       => exometer_http_yaws_stream,
+        start    => {exometer_http_yaws_stream, start_link, []},
+        restart  => temporary,
+        shutdown => 5000,
+        type     => worker,
+        modules  => [exometer_http_yaws_stream]
+    },
+    {ok, {SupFlags, [StreamSpec]}}.
 
 

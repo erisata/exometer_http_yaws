@@ -21,16 +21,10 @@
 -compile([{parse_transform, lager_transform}]).
 -behaviour(gen_server).
 -export([start_link/1]).
--export([
-    init/1,
-    handle_info/2,
-    handle_cast/2,
-    handle_call/3,
-    code_change/3,
-    terminate/2
-]).
+-export([init/1, handle_info/2, handle_cast/2, handle_call/3, code_change/3, terminate/2]).
 
 -define(DEFAULT_DELAY, 1000).
+
 
 %%% ============================================================================
 %%% API functions.
@@ -40,15 +34,18 @@
 %%  Start a streamer.
 %%
 start_link(Socket) ->
-    gen_server:start_link(?MODULE, [Socket], []).
+    gen_server:start_link(?MODULE, {Socket}, []).
 
 
 %%% ============================================================================
 %%% Internal state of the module.
 %%% ============================================================================
 
+%%
+%%  Internal state.
+%%
 -record(state, {
-    socket    :: term() | undefined,
+    socket      :: term(),
     yaws_pid    :: term() | undefined,
     metrics     :: [{EntryName :: [atom()], DataPoint :: atom()}]
 }).
@@ -62,7 +59,7 @@ start_link(Socket) ->
 %%  @doc
 %%  Saves socket of the client and starts streaming procedure.
 %%
-init([Socket]) ->
+init({Socket}) ->
     self() ! setup,
     {ok, #state{socket = Socket}}.
 
@@ -108,19 +105,18 @@ handle_info(setup, State = #state{socket = Socket}) ->
 %%
 handle_info(stream_header, State) ->
     #state{
-        socket = Socket,
+        socket   = Socket,
         yaws_pid = YawsPid
     } = State,
     Metrics = get_metrics(),
-    HeaderLine = create_header_line(Metrics),
     lager:info("Stream started. Number of metrics: ~p", [erlang:length(Metrics)]),
-    case yaws_api:stream_process_deliver_chunk(Socket, HeaderLine) of
+    case yaws_api:stream_process_deliver_chunk(Socket, create_header_line(Metrics)) of
         ok ->
             self() ! stream_data,
             NewState = State#state{metrics = Metrics},
             {noreply, NewState};
-        {error, _} ->
-            lager:info("Stream stopped. Connection lost."),
+        {error, Reason} ->
+            lager:info("Stream stopped, reason=~p", [Reason]),
             yaws_api:stream_process_end(Socket, YawsPid),
             {stop, normal, State}
     end;
@@ -134,14 +130,13 @@ handle_info(stream_data, State) ->
         yaws_pid = YawsPid,
         metrics = Metrics
     } = State,
-    DataLine = create_data_line(Metrics),
-    case yaws_api:stream_process_deliver_chunk(Socket, DataLine) of
+    case yaws_api:stream_process_deliver_chunk(Socket, create_data_line(Metrics)) of
         ok ->
             Delay = exometer_http_yaws_app:get_env(delay, ?DEFAULT_DELAY),
             erlang:send_after(Delay, self(), stream_data),
             {noreply, State};
-        {error, _} ->
-            lager:info("Stream stopped. Connection lost."),
+        {error, Reason} ->
+            lager:info("Stream stopped, reason=~p", [Reason]),
             yaws_api:stream_process_end(Socket, YawsPid),
             {stop, normal, State}
     end;
@@ -181,11 +176,10 @@ create_header_line(Metrics) ->
 %%  Creates a single csv line containing values of metrics.
 %%
 create_data_line(Metrics) ->
-    ListOfStrings = lists:map(
-        fun({Name, Datapoint}) ->
-            {ok, [{Datapoint, Value}]} = exometer:get_value(Name, Datapoint),
-            lists:flatten(io_lib:format("~w", [Value]))
-        end, Metrics),
+    ListOfStrings = lists:map(fun({Name, Datapoint}) ->
+        {ok, [{Datapoint, Value}]} = exometer:get_value(Name, Datapoint),
+        lists:flatten(io_lib:format("~w", [Value]))
+    end, Metrics),
     string:join(ListOfStrings, ",") ++ "\n".
 
 
@@ -237,10 +231,12 @@ create_header_line_test_() ->
                 {[testB, memUsage], n},
                 {[testB, memUsage], mean},
                 {[testB, memUsage], min}
-                ]))},
+            ])
+        )},
         {"Check, if header line formatted correctly when there are no metrics", ?_assertEqual(
             "\n",
-            create_header_line([]))}
+            create_header_line([])
+        )}
     ].
 
 
@@ -254,7 +250,7 @@ format_metric_path_test_() ->
         ?_assertEqual("dir1.dir2.max",  format_metric_path(["dir1", "dir2"], max)),
         ?_assertEqual("dir.1.max",      format_metric_path([dir, 1], max)),
         ?_assertEqual("a.first.value",  format_metric_path([a, first], value)),
-        ?_assertEqual("20.first.50.75",  format_metric_path([20, first, 50], 75))
+        ?_assertEqual("20.first.50.75", format_metric_path([20, first, 50], 75))
     ].
 
 

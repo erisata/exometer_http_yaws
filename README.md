@@ -2,21 +2,22 @@
 
 # The exometer_http_yaws application #
 
-This application allows quick inspection of the application which
-uses exometer to store its metrics.
+This application allows to access exometer metrics via HTTP.
+It is usually convenient quick/ad-hoc inspection of the application
+which uses exometer to store its metrics.
 
-The appmod of this application streams metric values to URL when socket connection is
-established. You may import this streamed .csv file to real-time data
-visualization tool like kst, livegraph, etc.
-
-Also, Multiple simultaneous connections are supported.
+This application provides a yaws appmod -- `exometer_http_yaws`.
+The appmod streams metric values when a `GET` request is received.
+You may save the stream to a file (`.csv`) and feed it to a real-time
+data visualization tool like kst, livegraph, etc.
+Multiple simultaneous streams are supported.
 
 
 ### <a name="Data_streaming">Data streaming</a> ###
 
-There are multiple ways of getting a streamed .csv file.
+There are multiple ways of getting a streamed `.csv` file.
 
-To stream metrics to .csv file, run following command:
+To stream metrics to a `.csv` file, run the following command:
 
 ```
 curl -N -get http://localhost:8004/ --verbose > ~/Desktop/kst_test_files/test2.csv
@@ -32,7 +33,9 @@ Or try downloading file using browser.
 This application configured in `sys.config` file and `yaws.conf`.
 
 Configuration items under `sys.config`:
+
 * delay - time interval between metric values retrieval from Exometer.
+
 Provided in miliseconds. Default value is 1 second.
 
 Example:
@@ -46,6 +49,7 @@ Example:
 Configuration items under `yaws.conf`:
 
 * You may specify custom URL path.
+
 Example:
 
 ```

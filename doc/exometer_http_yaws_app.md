@@ -5,7 +5,7 @@
 * [Function Index](#index)
 * [Function Details](#functions)
 
-Entry point of the application.
+Entry point of the OTP application.
 
 __Behaviours:__ [`application`](application.md).
 
@@ -19,7 +19,8 @@ __Behaviours:__ [`application`](application.md).
 
 <table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#get_env-1">get_env/1</a></td><td>
 Get environment variable for this application.</td></tr><tr><td valign="top"><a href="#get_env-2">get_env/2</a></td><td>
-Get environment variable for this application.</td></tr><tr><td valign="top"><a href="#name-0">name/0</a></td><td></td></tr><tr><td valign="top"><a href="#start-2">start/2</a></td><td>
+Get environment variable for this application.</td></tr><tr><td valign="top"><a href="#name-0">name/0</a></td><td>
+Returns name of this application.</td></tr><tr><td valign="top"><a href="#start-2">start/2</a></td><td>
 Start the application.</td></tr><tr><td valign="top"><a href="#stop-1">stop/1</a></td><td>
 Stop the application.</td></tr></table>
 
@@ -55,6 +56,8 @@ Get environment variable for this application.
 ### name/0 ###
 
 `name() -> any()`
+
+Returns name of this application.
 
 <a name="start-2"></a>
 
