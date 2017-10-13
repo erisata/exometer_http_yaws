@@ -177,8 +177,10 @@ create_header_line(Metrics) ->
 %%
 create_data_line(Metrics) ->
     ListOfStrings = lists:map(fun({Name, Datapoint}) ->
-        {ok, [{Datapoint, Value}]} = exometer:get_value(Name, Datapoint),
-        lists:flatten(io_lib:format("~w", [Value]))
+        case exometer:get_value(Name, Datapoint) of
+            {ok, [{Datapoint, undefined}]} -> "";
+            {ok, [{Datapoint, Value}]}     -> lists:flatten(io_lib:format("~w", [Value]))
+        end
     end, Metrics),
     string:join(ListOfStrings, ",") ++ "\n".
 
