@@ -43,12 +43,18 @@ all() -> [
 %%  CT API, initialization.
 %%
 init_per_suite(Config) ->
+    Port = 8006,
     _ = file:make_dir("logs"), % Needed by yaws (logdir).
     _ = file:make_dir("test"), % Needed by yaws (docroot).
-    ok = application:set_env(lager, log_root, "../", [{persistent, true}]), % Project's logs dir.
     {ok, LagerApps} = application:ensure_all_started(lager),
     {ok, Apps} = application:ensure_all_started(?APP),
-    [{itest_apps, LagerApps ++ Apps} | Config].
+    {ok, _SConf} = yaws:add_server("test", [
+        {port, Port},
+        {listen, {0, 0, 0, 0}},
+        {appmods, [{"/", exometer_http_yaws}]},
+        {opaque, []}
+    ]),
+    [{itest_apps, LagerApps ++ Apps}, {port, Port} | Config].
 
 
 %%
@@ -86,10 +92,10 @@ end_per_testcase(TestCase, _Config) ->
 %%  @doc
 %%  Check, if streaming metrics to file works.
 %%
-test_csv_file_providing(_Config) ->
+test_csv_file_providing(Config) ->
     ok = exometer:new([testA, cpuUsage], gauge),
     ok = exometer:new([testB, memUsage], histogram),
-    {ok, Socket} = gen_tcp:connect("localhost", 8006, [{active, true}]),
+    {ok, Socket} = gen_tcp:connect("localhost", proplists:get_value(port, Config), [{active, true}]),
     ok = gen_tcp:send(Socket, "GET / HTTP/1.1\n\n"),
     {ok, Data1} = receive_data(3, Socket),
     MetricsLineRE =

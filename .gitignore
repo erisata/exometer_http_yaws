@@ -4,6 +4,7 @@ deps
 *.o
 *.beam
 *.plt
+_build/
 doc/*.html
 doc/edoc-info
 doc/erlang.png

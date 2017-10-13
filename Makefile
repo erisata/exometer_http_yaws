@@ -48,6 +48,9 @@ doc:
 clean: clean-itest
 	$(REBAR) clean
 
+clean-itest:
+	rm -f test/*.beam
+
 clean-all: clean-itest
 	$(REBAR) clean --recursive
 
