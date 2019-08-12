@@ -43,7 +43,7 @@ rtest: compile
 	env ERL_LIBS=deps erl -pa ebin -pa itest -config test/sys -s $(APP) -s $(APP)_RTEST -s sync
 
 doc:
-	$(REBAR) doc
+	$(REBAR) as docs doc
 
 clean: clean-itest
 	$(REBAR) clean
