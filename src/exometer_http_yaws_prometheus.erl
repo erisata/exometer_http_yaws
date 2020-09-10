@@ -1,11 +1,20 @@
 %%% @doc
 %%% Provides stats in the Prometheus line based format as described here:
-%%% <https://github.com/prometheus/docs/blob/master/content/docs/instrumenting/exposition_formats.md>.
+%%% https://github.com/prometheus/docs/blob/master/content/docs/instrumenting/exposition_formats.md.
 %%%
 -module(exometer_http_yaws_prometheus).
 -compile({parse_transform, lager_transform}).
 -export([out/1]).
 -include_lib("yaws/include/yaws_api.hrl").
+
+
+%%
+%%
+%%
+-ignore_xref([
+    {?MODULE, out, 1}     % Yaws entry point
+]).
+
 
 %%  @doc
 %%  Yaws Appmod callback.

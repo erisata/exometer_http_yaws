@@ -26,6 +26,15 @@
 -define(DEFAULT_DELAY, 1000).
 
 
+%%
+%%
+%%
+-ignore_xref([
+    {?MODULE, start_link, 1}    % Function used indirectly by supervisor exometer_http_yaws_stream_sup.
+]).
+
+
+
 %%% ============================================================================
 %%% API functions.
 %%% ============================================================================

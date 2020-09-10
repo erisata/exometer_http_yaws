@@ -22,6 +22,17 @@ case erlang:function_exported(rebar3, main, 1) of
             ({App, Vsn, {git, Url, {ref, Ref}}}) -> {App, Vsn, {git, Url, {tag, Ref}}};
             (Other                             ) -> Other
         end,
+        TestDeps = [
+            {sync, ".*", {git, "https://github.com/rustyio/sync.git", {tag, "9106be7588"}}}
+        ],
+        DocsDeps = [
+            {edown, ".*", {git, "https://github.com/uwiger/edown.git", {tag, "0.8.1"}}}
+        ],
+        PostHooks = {post_hooks, [ % Only needed for rebar2
+            {clean, "rm -f ebin/exometer_http_yaws.appup"},
+            {compile, "sed \"s/{git,/{\\\"`git describe --always --tags`\\\",/\" src/exometer_http_yaws.appup.src > ebin/exometer_http_yaws.appup"}
+        ]},
+        Eunit_opts = {eunit_opts, [no_tty, {report, {eunit_progress, [colored]}}]},
         {value, {deps, Deps}, ConfigWoDeps} = lists:keytake(deps, 1, CONFIG),
-        [{deps, lists:map(RefToTag, Deps)} | ConfigWoDeps]
+        [{deps, lists:map(RefToTag, Deps) ++ TestDeps ++ DocsDeps}, PostHooks, Eunit_opts | ConfigWoDeps]
 end.

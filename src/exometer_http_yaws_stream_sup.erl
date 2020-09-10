@@ -24,6 +24,14 @@
 -export([init/1]).
 
 
+%%
+%%
+%%
+-ignore_xref([
+    {?MODULE, start_link, 0}    % Function used indirectly by supervisor exometer_http_yaws_sup.
+]).
+
+
 %%% ============================================================================
 %%% API functions.
 %%% ============================================================================

@@ -1,5 +1,5 @@
 #/--------------------------------------------------------------------
-#| Copyright 2017 Erisata, UAB (Ltd.)
+#| Copyright 2020 Erisata, UAB (Ltd.)
 #|
 #| Licensed under the Apache License, Version 2.0 (the "License");
 #| you may not use this file except in compliance with the License.
@@ -14,46 +14,41 @@
 #| limitations under the License.
 #\--------------------------------------------------------------------
 
-REBAR=rebar
+REBAR=rebar3
 APP=exometer_http_yaws
 
-all: compile-all
+all: compile
 
 deps:
 	$(REBAR) get-deps
 
 compile:
-	$(REBAR) compile skip_deps=true
+	$(REBAR) compile
 
-compile-all:
-	$(REBAR) compile --recursive
+xref:
+	$(REBAR) xref
 
-check: test itest
+check: test itest xref
 
-test: compile
-	mkdir -p logs
-	env ERL_LIBS=deps ERL_AFLAGS='-config test/sys -s lager' $(REBAR) eunit skip_deps=true verbose=1
+test:
+	$(REBAR) eunit --verbose
 
-itest: compile
-	mkdir -p logs
-	env ERL_LIBS=deps ERL_AFLAGS='-config test/itest-sys' $(REBAR) ct skip_deps=true $(CT_ARGS) || grep Testing logs/raw.log
+itest:
+	$(REBAR) ct --name $(APP) $(CT_ARGS)
 
 rtest: compile
 	mkdir -p logs
-	env ERL_LIBS=deps erl -pa ebin -pa itest -config test/sys -s $(APP) -s $(APP)_RTEST -s sync
+	$(REBAR) as test shell --script test/$(APP)_RTEST.escript --name "$(APP)@`hostname --fqdn`"
 
-doc:
-	$(REBAR) as docs doc
+docs:
+	$(REBAR) as docs edoc
 
-clean: clean-itest
+clean:
 	$(REBAR) clean
 
-clean-itest:
-	rm -f test/*.beam
+clean-all:
+	$(REBAR) clean --all
 
-clean-all: clean-itest
-	$(REBAR) clean --recursive
-
-.PHONY: all deps compile compile-all check test itest doc clean clean-all clean-itest
+.PHONY: all deps compile check test itest xref docs clean clean-all
 
 

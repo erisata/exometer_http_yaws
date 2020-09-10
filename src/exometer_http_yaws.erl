@@ -26,6 +26,15 @@
 -include_lib("yaws/include/yaws_api.hrl").
 
 
+%%
+%%
+%%
+-ignore_xref([
+    {?MODULE, start, 0},    % Initial entry point of the application
+    {?MODULE, out,   1}     % Yaws entry point
+]).
+
+
 %%% ============================================================================
 %%% Public API
 %%% ============================================================================
