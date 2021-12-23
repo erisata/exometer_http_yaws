@@ -23,7 +23,12 @@ out(Arg  = #arg{req = #http_request{method = Method}}) ->
     out(path_tokens(Arg), Method, Arg).
 
 
-out(PathTokens, 'GET', _Arg) ->
+out(undefined, 'GET', _Arg) ->
+    [ % We had unknown atoms in the query, thus we don't know those metrics.
+        {status, 404}
+    ];
+
+out(PathTokens, 'GET', _Arg) when is_list(PathTokens) ->
     {MetricsText, Nested} = lists:mapfoldl(fun ({Name, _Type, Status}, Nested) ->
         case lists:nthtail(length(PathTokens), Name) of
             [LocalName] when Status =:= enabled ->
